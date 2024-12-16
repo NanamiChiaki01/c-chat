@@ -2,9 +2,9 @@
 CC=gcc
 FLAGS=-Wall -Werror -g -fsanitize=address
 LDFLAGS = -lm
-OBJS=main.o
+OBJS=server.o test.o
 TARGET=c_chat
-MAIN_SOURCE=main.c
+MAIN_SOURCE=server.c test.c
 all: $(TARGET)
 
 $(TARGET): $(OBJS)

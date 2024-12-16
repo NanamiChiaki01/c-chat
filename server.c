@@ -1,9 +1,8 @@
 #include "server.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 // Server constructor
-struct Server server_constructor(int domain, int service, int protocol, u_long interface, int port, int backlog, void(*launch)(void))
+struct Server server_constructor(int domain, int service, int protocol, u_long interface, int port, int backlog, void(*launch)(struct Server* server))
 {
   struct Server server;
 
@@ -13,13 +12,13 @@ struct Server server_constructor(int domain, int service, int protocol, u_long i
   server.interface = interface;
   server.port = port;
   server.backlog =  backlog;
-  server.launch = launch;
   
   server.address.sin_family = domain;
-  server.address.sin_port = hton(port); // convert digital port to meaningful network port
-  server.address.sin_addr.s_addr = htol(interface); // convert to long interface to the network
+  server.address.sin_port = htons(port); // convert digital port to meaningful network port
+  server.address.sin_addr.s_addr = htonl(interface); // convert to long interface to the network
 
   // create socket connection to the network
+  // server.socket is a socket fd
   server.socket = socket(domain, service, protocol);
   if (server.socket == 0)
   {
@@ -37,7 +36,7 @@ struct Server server_constructor(int domain, int service, int protocol, u_long i
   // tell the server that it should be listening
   // the backlog defines how many connections are allowed to be waiting
   // this will check error
-  if(listen(server.socket, int server.backlog)<0)
+  if(listen(server.socket, server.backlog)<0)
   {
     perror("Failed to listen ... \n");
     exit(1);
