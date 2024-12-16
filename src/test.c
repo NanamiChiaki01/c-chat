@@ -1,4 +1,5 @@
-#include "server.h"
+#include "../include/server.h"
+#include "../include/client.h"
 #include <stdio.h>
 #include <string.h>
 #define BUFLEN (30000)

@@ -2,24 +2,17 @@
 CC=gcc
 FLAGS=-Wall -Werror -g -fsanitize=address
 LDFLAGS = -lm
-OBJS=server.o test.o
-TARGET=c_chat
-MAIN_SOURCE=server.c test.c
-all: $(TARGET)
+INCLUDE=-I include
 
-$(TARGET): $(OBJS)
-	$(CC) $(FLAGS) $^ -o $@ $(LDFLAGS)
+all: $(SERVER) $(CLIENT)
 
-.PHONY:
-build: $(OBJS)
-	$(CC) $(FLAGS) $^ -o $@ $(LDFLAGS)
-
-%.o: %.c
-	$(CC) -c $(FLAGS) $< -o $@
-
-.PHONY:
 clean:
 	rm -f $(OBJS)
 	rm -f $(TARGET)
 	rm -rf *.out
 
+server: src/server.c
+	$(CC) $^ $(INCLUDE) $(CFLAGS) $(LDFLAGS) -o $@
+
+client: src/client.c
+	$(CC) $^ $(INCLUDE) $(CFLAGS) $(LDFLAGS) -o $@
