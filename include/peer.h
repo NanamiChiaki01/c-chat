@@ -18,4 +18,6 @@ struct Peer
   void* (*client_function)(void* arg);
 }
 
+struct Peer peer_constructor(int domain, int service, u_long protocol, int port);
+
 #endif
