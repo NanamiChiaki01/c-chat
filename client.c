@@ -43,11 +43,13 @@ int main() {
 
     printf("Connected to chatroom.\n");
     pthread_create(&recv_thread, NULL, receive_messages, NULL);
+    pthread_detach(recv_thread); // Detach thread for independent execution
 
     // 5. Communicate
     while (1) {
         printf("> ");
-        fgets(message, BUFFER_SIZE, stdin);
+        fflush(stdout); // Ensure prompt is shown immediately
+        if (fgets(message, BUFFER_SIZE, stdin) == NULL) break;
         send(sock, message, strlen(message), 0);
     }
 

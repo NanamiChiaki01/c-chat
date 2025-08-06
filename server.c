@@ -71,16 +71,18 @@ int main() {
         } else {
             clients[client_count++] = new_socket;
 
-            // Broadcast join message
-            char join_msg[BUFFER_SIZE] = {0};
-            snprintf(join_msg, sizeof(join_msg), "Client %d has joined the chatroom.\n", new_socket);
-            broadcast_message(join_msg, -1);  // -1 means send to all
-
+            // Create a new thread for the client
             int *pclient = malloc(sizeof(int));
             *pclient = new_socket;
             pthread_create(&tid, NULL, handle_client, pclient);
             pthread_detach(tid);
             printf("Client %d connected.\n", new_socket);
+
+            // Broadcast join message
+            char join_msg[BUFFER_SIZE] = {0};
+            snprintf(join_msg, sizeof(join_msg), "Client %d has joined the chatroom.\n", new_socket);
+            broadcast_message(join_msg, -1);  // -1 means send to all
+
         }
         pthread_mutex_unlock(&clients_mutex);
         
