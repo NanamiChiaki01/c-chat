@@ -1,20 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <netinet/in.h>
-
-#define PORT 12345
-#define BUFFER_SIZE 1024
-#define MAX_CLIENTS 10
-
-int clients[MAX_CLIENTS];
-int client_count = 0;
-pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-void *handle_client(void *arg);
-void broadcast_message(char *message, int sender_fd);
+#include "server.h"
 
 int main() {
     int server_fd, client_fd;
@@ -63,6 +47,12 @@ int main() {
 
         printf("Client connected: fd = %d\n", client_fd);
 
+        // Notify all clients about the new connection
+        char join_msg[BUFFER_SIZE];
+        snprintf(join_msg, sizeof(join_msg), "📢 Client %d has joined the chatroom.", client_fd);
+        broadcast_message(join_msg, -1);  // -1 means "don't exclude anyone"
+
+        // Create a new thread for the client
         int *client_sock = malloc(sizeof(int));
         *client_sock = client_fd;
         pthread_create(&thread_id, NULL, handle_client, client_sock);
@@ -85,6 +75,12 @@ void *handle_client(void *arg) {
         int valread = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
         if (valread <= 0) {
             printf("Client disconnected: fd = %d\n", client_fd);
+
+            // Notify all clients about the new connection
+            char dc_msg[BUFFER_SIZE];
+            snprintf(dc_msg, sizeof(dc_msg), "📢 Client %d has disconnected the chatroom.", client_fd);
+            broadcast_message(dc_msg, -1);  // -1 means "don't exclude anyone"            
+
             break;
         }
 
