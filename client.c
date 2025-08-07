@@ -3,71 +3,71 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #define PORT 12345
 #define BUFFER_SIZE 1024
 
-// Global variables
-int sock; 
+int sock;
 
-// function prototypes
-void *receive_messages(void* arg);
+void *receive_messages(void *arg) {
+    char buffer[BUFFER_SIZE];
+    while (1) {
+        memset(buffer, 0, BUFFER_SIZE);
+        int valread = recv(sock, buffer, BUFFER_SIZE - 1, 0);
+        if (valread <= 0) {
+            printf("Disconnected from server.\n");
+            break;
+        }
+        buffer[valread] = '\0';
+        //printf("[Debug] Received %d bytes\n", valread);
+        printf("Server: %s\n", buffer);
+    }
+    return NULL;
+}
 
 int main() {
-    struct sockaddr_in serv_addr;
-    char message[BUFFER_SIZE] = {0};
+    struct sockaddr_in server_addr;
+    char message[BUFFER_SIZE];
     pthread_t recv_thread;
 
-    // 1. Create socket
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Socket creation error");
+    // Create socket
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    // 2. Setup server address
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    // Server address setup
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
 
-    // 3. Convert IP
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        perror("Invalid address");
+    // Connect to server
+    if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("connection failed");
         exit(EXIT_FAILURE);
     }
 
-    // 4. Connect
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("Connection failed");
-        exit(EXIT_FAILURE);
-    }
+    printf("Connected to server. Type messages:\n");
 
-    printf("Connected to chatroom.\n");
+    // Create thread to receive messages
     pthread_create(&recv_thread, NULL, receive_messages, NULL);
-    pthread_detach(recv_thread); // Detach thread for independent execution
 
-    // 5. Communicate
+    // Main thread: send messages
     while (1) {
-        printf("> ");
-        fflush(stdout); // Ensure prompt is shown immediately
-        if (fgets(message, BUFFER_SIZE, stdin) == NULL) break;
+        memset(message, 0, BUFFER_SIZE);
+        fgets(message, BUFFER_SIZE, stdin);
+        message[strcspn(message, "\n")] = '\0'; // remove newline
+
+        if (strcmp(message, "exit") == 0) {
+            break;
+        }
+
         send(sock, message, strlen(message), 0);
     }
 
     close(sock);
     return 0;
-}
-
-void *receive_messages(void *arg) {
-    char buffer[BUFFER_SIZE] = {0};
-    while (1) {
-        memset(buffer, 0, BUFFER_SIZE);
-        int valread = read(sock, buffer, BUFFER_SIZE);
-        if (valread <= 0) {
-            printf("Disconnected from server.\n");
-            exit(0);
-        }
-        printf("\n%s> ", buffer);
-        fflush(stdout); // clear the line for new input
-    }
-    return NULL;
 }
