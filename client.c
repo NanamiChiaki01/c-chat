@@ -22,7 +22,7 @@ void *receive_messages(void *arg) {
         }
         buffer[valread] = '\0';
         //printf("[Debug] Received %d bytes\n", valread);
-        printf("Server: %s\n", buffer);
+        printf("> %s\n", buffer);
     }
     return NULL;
 }
