@@ -1,6 +1,7 @@
 #include "server.h"
 
 int main() {
+    init_logs();
     int server_fd, client_fd;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);

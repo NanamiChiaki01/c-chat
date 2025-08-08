@@ -1,6 +1,15 @@
 #ifndef USER_H
 #define USER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <arpa/inet.h>
+#include <ctype.h>
+#include "chatroom.h"
+
 #define MAX_CLIENTS 100
 #define BUFFER_SIZE 1024
 

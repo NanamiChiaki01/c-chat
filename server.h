@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include "user.h"
+#include "chatroom.h"
 
 #define PORT 12345
 #define BUFFER_SIZE 1024
