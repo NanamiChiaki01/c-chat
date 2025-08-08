@@ -1,5 +1,7 @@
 #include "client.h"
 
+int sock;
+
 void *receive_messages(void *arg) {
     char buffer[BUFFER_SIZE];
     while (1) {
@@ -39,7 +41,9 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Connected to server. Type messages:\n");
+    printf("Connected to server. \n");
+
+/* Messaging */
 
     // Create thread to receive messages
     pthread_create(&recv_thread, NULL, receive_messages, NULL);

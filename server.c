@@ -42,15 +42,9 @@ int main() {
             pthread_mutex_unlock(&clients_mutex);
             continue;
         }
-        clients[client_count++] = client_fd;
         pthread_mutex_unlock(&clients_mutex);
 
         printf("Client connected: fd = %d\n", client_fd);
-
-        // Notify all clients about the new connection
-        char join_msg[BUFFER_SIZE];
-        snprintf(join_msg, sizeof(join_msg), "📢 Client %d has joined the chatroom.", client_fd);
-        broadcast_message(join_msg, -1);  // -1 means "don't exclude anyone"
 
         // Create a new thread for the client
         int *client_sock = malloc(sizeof(int));
@@ -61,59 +55,4 @@ int main() {
 
     close(server_fd);
     return 0;
-}
-
-void *handle_client(void *arg) {
-    int client_fd = *((int *)arg);
-    free(arg);
-
-    char buffer[BUFFER_SIZE];
-    char message[BUFFER_SIZE + 50];  // To include sender info
-
-    while (1) {
-        memset(buffer, 0, BUFFER_SIZE);
-        int valread = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
-        if (valread <= 0) {
-            printf("Client disconnected: fd = %d\n", client_fd);
-
-            // Notify all clients about the new connection
-            char dc_msg[BUFFER_SIZE];
-            snprintf(dc_msg, sizeof(dc_msg), "📢 Client %d has disconnected the chatroom.", client_fd);
-            broadcast_message(dc_msg, -1);  // -1 means "don't exclude anyone"            
-
-            break;
-        }
-
-        buffer[valread] = '\0';
-        printf("Received from %d: %s\n", client_fd, buffer);
-
-        snprintf(message, sizeof(message), "Client %d: %s", client_fd, buffer);
-        broadcast_message(message, client_fd);
-    }
-
-    close(client_fd);
-
-    pthread_mutex_lock(&clients_mutex);
-    // Remove client from list
-    for (int i = 0; i < client_count; ++i) {
-        if (clients[i] == client_fd) {
-            clients[i] = clients[client_count - 1];  // Replace with last
-            client_count--;
-            break;
-        }
-    }
-    pthread_mutex_unlock(&clients_mutex);
-
-    return NULL;
-}
-
-void broadcast_message(char *message, int sender_fd) {
-    pthread_mutex_lock(&clients_mutex);
-    for (int i = 0; i < client_count; ++i) {
-        int client = clients[i];
-        if (client != sender_fd) {
-            send(client, message, strlen(message), 0);
-        }
-    }
-    pthread_mutex_unlock(&clients_mutex);
 }
